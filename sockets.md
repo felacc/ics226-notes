@@ -11,15 +11,17 @@ UDP is fast but unreliable transport layer protocol.
 ```python
 #!/usr/bin/python3.11
 from socket import socket, AF_INET, SOCK_DGRAM
+
 BUF_SIZE = 1024
 HOST = '127.0.0.1' # '' would cause the server to listen on all interfaces
 PORT = 65432
+
 with socket(AF_INET, SOCK_DGRAM) as sock: # UDP Socket
-sock.bind((HOST, PORT)) # Claim messages sent to port "PORT"
-data, address = sock.recvfrom(BUF_SIZE) # Receive up to "BUF_SIZE" bytes
-text = data.decode('utf-8') # Convert from binary representation
-source_ip, source_port = address # Extract source IP and source port
-print(f'IP: {source_ip} Port: {source_port} Message: {text}')
+    sock.bind((HOST, PORT)) # Claim messages sent to port "PORT"
+    data, address = sock.recvfrom(BUF_SIZE) # Receive up to "BUF_SIZE" bytes
+    text = data.decode('utf-8') # Convert from binary representation
+    source_ip, source_port = address # Extract source IP and source port
+    print(f'IP: {source_ip} Port: {source_port} Message: {text}')
 ```
 
 ### Sample UDP Client
@@ -27,15 +29,18 @@ print(f'IP: {source_ip} Port: {source_port} Message: {text}')
 #!/usr/bin/python3.11
 from socket import socket, AF_INET, SOCK_DGRAM
 from sys import argv
+
 BUF_SIZE = 1024
 HOST = '127.0.0.1'
 PORT = 65432
+
 if len(argv) != 2:
-print(argv[0] + ' <message>')
-exit()
+    print(argv[0] + ' <message>')
+    exit()
+    
 with socket(AF_INET, SOCK_DGRAM) as sock: # UDP socket
-data = argv[1].encode('utf-8') # Convert command line arg to binary
-sock.sendto(data, (HOST, PORT)) # Send message to server
+    data = argv[1].encode('utf-8') # Convert command line arg to binary
+    sock.sendto(data, (HOST, PORT)) # Send message to server
 ```
 
 #### Test the code
@@ -79,22 +84,24 @@ TCP is reliable but slower transport layer protocol.
 ### Sample TCP Server
 ```python
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+
 BUF_SIZE = 1024
 HOST = ''
 PORT = 65432
+
 with socket(AF_INET, SOCK_STREAM) as sock: # TCP socket
-sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Details later
-sock.bind((HOST, PORT)) # Claim messages sent to port "PORT"
-sock.listen(1) # Server only supports a single 3-way handshake at a time
-print('Server:', sock.getsockname()) # Server IP and port
-while True:
-sc, _ = sock.accept() # Wait until a connection is established
-with sc:
-print('Client:', sc.getpeername()) # Client IP and port
-data = sc.recv(BUF_SIZE) # recvfrom not needed since address known
-decoded_data = data.decode()
-print(decoded_data)
-sc.sendall(data) # Client IP and port implicit due to accept call
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Details later
+    sock.bind((HOST, PORT)) # Claim messages sent to port "PORT"
+    sock.listen(1) # Server only supports a single 3-way handshake at a time
+    print('Server:', sock.getsockname()) # Server IP and port
+    while True:
+        sc, _ = sock.accept() # Wait until a connection is established
+        with sc:
+            print('Client:', sc.getpeername()) # Client IP and port
+            data = sc.recv(BUF_SIZE) # recvfrom not needed since address known
+            decoded_data = data.decode()
+            print(decoded_data)
+            sc.sendall(data) # Client IP and port implicit due to accept call
 ```
 
 ### Sample TCP Client
@@ -102,20 +109,23 @@ sc.sendall(data) # Client IP and port implicit due to accept call
 #!/usr/bin/python3.11
 from socket import socket, AF_INET, SOCK_STREAM
 from sys import argv
+
 BUF_SIZE = 1024
 HOST = '127.0.0.1'
 PORT = 65432
+
 if len(argv) != 2:
-print(argv[0] + ' <message>')
-exit()
+    print(argv[0] + ' <message>')
+    exit()
+
 with socket(AF_INET, SOCK_STREAM) as sock: # TCP socket
-sock.connect((HOST, PORT)) # Initiates 3-way handshake
-print('Client:', sock.getsockname()) # Client IP and port
-data = argv[1].encode('utf-8') # Convert command line arg to binary
-sock.sendall(data) # Server IP and port implicit due to connect call
-reply = sock.recv(BUF_SIZE) # recvfrom not needed since address known
-decoded_reply = reply.decode()
-print('Reply:', decoded_reply)
+    sock.connect((HOST, PORT)) # Initiates 3-way handshake
+    print('Client:', sock.getsockname()) # Client IP and port
+    data = argv[1].encode('utf-8') # Convert command line arg to binary
+    sock.sendall(data) # Server IP and port implicit due to connect call
+    reply = sock.recv(BUF_SIZE) # recvfrom not needed since address known
+    decoded_reply = reply.decode()
+    print('Reply:', decoded_reply)
 ```
 
 ### Timeout Notes
@@ -162,13 +172,14 @@ If we know each message ends with a newline, we can call `data = recv(1)` until 
 
 ```python
 BUF_SIZE = 1 # Not efficient
+
 def get_line(current_socket: socket) -> bytes:
-buffer = b''
-while True:
-data = current_socket.recv(BUF_SIZE)
-if data == b'' or data == b'\n':
-return buffer
-buffer = buffer + data
+    buffer = b''
+    while True:
+        data = current_socket.recv(BUF_SIZE)
+        if data == b'' or data == b'\n':
+            return buffer
+    buffer = buffer + data
 ```
 
 ## Data Encoding
